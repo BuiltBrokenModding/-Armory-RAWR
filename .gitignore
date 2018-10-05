@@ -1,0 +1,12 @@
+
+build/
+
+\.gradle/
+
+Armory-RAWR\.txt
+
+Armory-RAWR\.iws
+
+Armory-RAWR\.ipr
+
+Armory-RAWR\.iml
