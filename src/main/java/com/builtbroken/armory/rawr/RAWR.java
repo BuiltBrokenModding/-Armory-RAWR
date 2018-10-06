@@ -1,6 +1,6 @@
 package com.builtbroken.armory.rawr;
 
-import com.builtbroken.armory.rawr.content.EntityRawr;
+import com.builtbroken.armory.rawr.content.entity.EntityRawr;
 import com.builtbroken.armory.rawr.content.ItemRAWR;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
