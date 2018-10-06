@@ -1,14 +1,19 @@
 package com.builtbroken.armory.rawr.content.entity;
 
 import com.builtbroken.armory.rawr.content.entity.ai.EntityAIFollowOwner;
+import com.google.common.base.Optional;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTUtil;
+import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.world.World;
 
+import javax.annotation.Nullable;
 import java.util.UUID;
 
 /**
@@ -17,12 +22,11 @@ import java.util.UUID;
  */
 public class EntityRawr extends EntityLiving
 {
-    public final String NBT_USERNAME = "username";
+    protected static final DataParameter<Optional<UUID>> OWNER_UNIQUE_ID = EntityDataManager.<Optional<UUID>>createKey(EntityRawr.class, DataSerializers.OPTIONAL_UNIQUE_ID);
+
     public final String NBT_UUID = "uuid";
 
     private EntityPlayer owner;
-    private String owner_username;
-    private UUID owner_uuid;
 
     public EntityRawr(World worldIn)
     {
@@ -34,7 +38,7 @@ public class EntityRawr extends EntityLiving
     @Override
     protected void initEntityAI()
     {
-        this.tasks.addTask(6, new EntityAIFollowOwner(this,1.0D, 4, 15.0F));
+        this.tasks.addTask(6, new EntityAIFollowOwner(this, 1.0D, 4, 15.0F));
     }
 
     @Override
@@ -55,7 +59,8 @@ public class EntityRawr extends EntityLiving
 
     public EntityPlayer getOwner()
     {
-        if(owner_uuid != null)
+        UUID owner_uuid = getOwnerId();
+        if (owner_uuid != null)
         {
             if (owner == null || owner.isDead || owner.getGameProfile() == null || owner.getGameProfile().getId() != owner_uuid)
             {
@@ -66,10 +71,20 @@ public class EntityRawr extends EntityLiving
         return null;
     }
 
+    @Nullable
+    public UUID getOwnerId()
+    {
+        return (UUID) ((Optional) this.dataManager.get(OWNER_UNIQUE_ID)).orNull();
+    }
+
+    public void setOwnerId(@Nullable UUID id)
+    {
+        this.dataManager.set(OWNER_UNIQUE_ID, Optional.fromNullable(id));
+    }
+
     public void setOwner(EntityPlayer player)
     {
-        this.owner_username = player.getGameProfile().getName();
-        this.owner_uuid = player.getGameProfile().getId();
+        setOwnerId(player.getGameProfile().getId());
     }
 
     public boolean shouldFollowOwner()
@@ -81,10 +96,7 @@ public class EntityRawr extends EntityLiving
     public void writeEntityToNBT(NBTTagCompound compound)
     {
         super.writeEntityToNBT(compound);
-        if (owner_username != null)
-        {
-            compound.setString(NBT_USERNAME, owner_username);
-        }
+        UUID owner_uuid = getOwnerId();
         if (owner_uuid != null)
         {
             compound.setTag(NBT_UUID, NBTUtil.createUUIDTag(owner_uuid));
@@ -95,13 +107,9 @@ public class EntityRawr extends EntityLiving
     public void readEntityFromNBT(NBTTagCompound compound)
     {
         super.readEntityFromNBT(compound);
-        if (compound.hasKey(NBT_USERNAME))
-        {
-            owner_username = compound.getString(NBT_USERNAME);
-        }
         if (compound.hasKey(NBT_UUID))
         {
-            owner_uuid = NBTUtil.getUUIDFromTag(compound.getCompoundTag(NBT_UUID));
+            setOwnerId(NBTUtil.getUUIDFromTag(compound.getCompoundTag(NBT_UUID)));
         }
     }
 }
