@@ -1,9 +1,13 @@
 package com.builtbroken.armory.rawr.content.entity;
 
-import com.builtbroken.armory.rawr.content.entity.ai.EntityAIFollowOwner;
+import com.builtbroken.armory.rawr.content.entity.ai.TaskAttackWhenHarmed;
+import com.builtbroken.armory.rawr.content.entity.ai.TaskFindTarget;
 import com.google.common.base.Optional;
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityCreature;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.IRangedAttackMob;
 import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.EntityAIAttackRanged;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTUtil;
@@ -20,7 +24,7 @@ import java.util.UUID;
  * @see <a href="https://github.com/BuiltBrokenModding/VoltzEngine/blob/development/license.md">License</a> for what you can and can't do with the code.
  * Created by Dark(DarkGuardsman, Robert) on 10/5/2018.
  */
-public class EntityRawr extends EntityLiving
+public class EntityRawr extends EntityCreature implements IRangedAttackMob
 {
     protected static final DataParameter<Optional<UUID>> OWNER_UNIQUE_ID = EntityDataManager.<Optional<UUID>>createKey(EntityRawr.class, DataSerializers.OPTIONAL_UNIQUE_ID);
 
@@ -38,7 +42,10 @@ public class EntityRawr extends EntityLiving
     @Override
     protected void initEntityAI()
     {
-        this.tasks.addTask(6, new EntityAIFollowOwner(this, 1.0D, 4, 15.0F));
+        //this.tasks.addTask(6, new EntityAIFollowOwner(this, 1.0D, 4, 15.0F));
+        this.targetTasks.addTask(1, new TaskAttackWhenHarmed(this));
+        this.targetTasks.addTask(2, new TaskFindTarget(this));
+        this.targetTasks.addTask(3, new EntityAIAttackRanged(this, 1.0D, 3, 20.0F));
     }
 
     @Override
@@ -47,7 +54,8 @@ public class EntityRawr extends EntityLiving
         super.applyEntityAttributes();
         this.getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(35.0D);
         this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.23000000417232513D);
-        //this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(3.0D);
+        this.getAttributeMap().registerAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
+        this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(3.0D);
         this.getEntityAttribute(SharedMonsterAttributes.ARMOR).setBaseValue(5.0D);
     }
 
@@ -55,6 +63,7 @@ public class EntityRawr extends EntityLiving
     protected void entityInit()
     {
         super.entityInit();
+        this.dataManager.register(OWNER_UNIQUE_ID, Optional.absent());
     }
 
     public EntityPlayer getOwner()
@@ -111,5 +120,17 @@ public class EntityRawr extends EntityLiving
         {
             setOwnerId(NBTUtil.getUUIDFromTag(compound.getCompoundTag(NBT_UUID)));
         }
+    }
+
+    @Override
+    public void attackEntityWithRangedAttack(EntityLivingBase target, float distanceFactor)
+    {
+
+    }
+
+    @Override
+    public void setSwingingArms(boolean swingingArms)
+    {
+
     }
 }

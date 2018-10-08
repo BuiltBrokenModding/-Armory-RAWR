@@ -182,6 +182,9 @@ public class ModelRawrMinigun extends ModelBase
     public void setRotationAngles(float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float scaleFactor, Entity entityIn)
     {
         super.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entityIn);
+
+        NeckPlatform.rotateAngleY = netHeadYaw * 0.017453292F;
+        MinigunBody.rotateAngleX = headPitch * 0.017453292F;
     }
 
     /**

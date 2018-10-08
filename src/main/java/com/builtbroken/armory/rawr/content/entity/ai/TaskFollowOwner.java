@@ -11,7 +11,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
-public class EntityAIFollowOwner extends EntityAIBase
+public class TaskFollowOwner extends EntityAIBase
 {
     private final EntityRawr host;
     private final PathNavigate petPathfinder;
@@ -23,7 +23,7 @@ public class EntityAIFollowOwner extends EntityAIBase
     private World world;
     private int timeToRecalcPath;
 
-    public EntityAIFollowOwner(EntityRawr host, double followSpeedIn, float minDistIn, float maxDistIn)
+    public TaskFollowOwner(EntityRawr host, double followSpeedIn, float minDistIn, float maxDistIn)
     {
         this.host = host;
         this.world = host.world;
