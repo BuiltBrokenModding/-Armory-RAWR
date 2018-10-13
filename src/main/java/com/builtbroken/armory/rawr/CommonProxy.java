@@ -1,6 +1,7 @@
 package com.builtbroken.armory.rawr;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.IGuiHandler;
 
@@ -24,5 +25,15 @@ public class CommonProxy implements IGuiHandler
     public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z)
     {
         return null;
+    }
+
+    public void spawnWeaponFireEffect(World world, Vec3d position, Vec3d heading)
+    {
+
+    }
+
+    public void spawnWeaponHitEffect(World world, Vec3d position)
+    {
+
     }
 }

@@ -2,6 +2,7 @@ package com.builtbroken.armory.rawr;
 
 import com.builtbroken.armory.rawr.content.entity.EntityRawr;
 import com.builtbroken.armory.rawr.content.ItemRAWR;
+import com.builtbroken.armory.rawr.network.NetworkHandler;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
@@ -54,6 +55,7 @@ public class RAWR
     public void preInit(FMLPreInitializationEvent event)
     {
         NetworkRegistry.INSTANCE.registerGuiHandler(this, sideProxy);
+        NetworkHandler.init();
     }
 
     @SubscribeEvent

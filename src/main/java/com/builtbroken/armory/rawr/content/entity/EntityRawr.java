@@ -2,7 +2,11 @@ package com.builtbroken.armory.rawr.content.entity;
 
 import com.builtbroken.armory.rawr.content.entity.ai.TaskAttackWhenHarmed;
 import com.builtbroken.armory.rawr.content.entity.ai.TaskFindTarget;
+import com.builtbroken.armory.rawr.network.NetworkHandler;
+import com.builtbroken.armory.rawr.network.effects.TargetHitPacket;
+import com.builtbroken.armory.rawr.network.effects.WeaponFirePacket;
 import com.google.common.base.Optional;
+import javafx.util.Pair;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.EntityAIAttackRanged;
 import net.minecraft.entity.player.EntityPlayer;
@@ -131,15 +135,23 @@ public class EntityRawr extends EntityCreature implements IRangedAttackMob, IEnt
         Vec3d end = new Vec3d(target.posX, target.posY + (double) target.getEyeHeight(), target.posZ);
 
         //Check if we don't hit a block between us and the target
-        RayTraceResult result = this.world.rayTraceBlocks(start, end, false, true, false);
-        if (result == null)
+        RayTraceResult blockTrace = this.world.rayTraceBlocks(start, end, false, true, false);
+        if (blockTrace == null)
         {
-            Entity hit = findEntityOnPath(start, end);
-            if (hit != null)
+            Pair<Entity, Vec3d> result = findEntityOnPath(start, end);
+            Entity entity = result.getKey();
+            Vec3d hit = result.getValue();
+            if (entity != null)
             {
-                hit.attackEntityFrom(DamageSource.causeIndirectDamage(this, this), 4); //TODO make custom damage source and create a method for getting damage
+                entity.attackEntityFrom(DamageSource.causeIndirectDamage(this, this), 4); //TODO make custom damage source and create a method for getting damage
+                if (hit != null)
+                {
+                    NetworkHandler.sendToAllAround(this, new TargetHitPacket(world, hit)); //TODO offset a little
+                }
             }
         }
+
+        NetworkHandler.sendToAllAround(this, new WeaponFirePacket(world, start, start.subtract(end).normalize())); //TODO move start to barrel
 
         //TODO send packet to client to spawn effects
         //TODO send packet on hit to spawn effects
@@ -147,12 +159,13 @@ public class EntityRawr extends EntityCreature implements IRangedAttackMob, IEnt
     }
 
     @Nullable
-    protected Entity findEntityOnPath(Vec3d start, Vec3d end)
+    protected Pair<Entity, Vec3d> findEntityOnPath(Vec3d start, Vec3d end)
     {
         Entity result = null;
+        Vec3d result_hit = null;
 
         //Get all entities in zone of hit
-        List<Entity> list = this.world.getEntitiesInAABBexcluding(this, new AxisAlignedBB(start, end).grow(1.0D), null);
+        List<Entity> list = this.world.getEntitiesInAABBexcluding(this, new AxisAlignedBB(start, end).grow(1.0D), null); //TODO fine tune attack area to ensure its in front of the gun
         double d0 = 0.0D;
 
         for (Entity entity : list)
@@ -170,13 +183,14 @@ public class EntityRawr extends EntityCreature implements IRangedAttackMob, IEnt
                     if (distance < d0 || d0 == 0.0D)
                     {
                         result = entity;
+                        result_hit = raytraceresult.hitVec;
                         d0 = distance;
                     }
                 }
             }
         }
 
-        return result;
+        return new Pair(result, result_hit);
     }
 
     /**
