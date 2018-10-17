@@ -6,7 +6,10 @@ import com.builtbroken.armory.rawr.network.NetworkHandler;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.config.Config;
+import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -81,5 +84,14 @@ public class RAWR
 
         //Register entity
         event.getRegistry().register(builder.build());
+    }
+
+    @SubscribeEvent
+    public static void onConfigChangedEvent(final ConfigChangedEvent.OnConfigChangedEvent event)
+    {
+        if (event.getModID().equals(RAWR.DOMAIN))
+        {
+            ConfigManager.sync(RAWR.DOMAIN, Config.Type.INSTANCE);
+        }
     }
 }
