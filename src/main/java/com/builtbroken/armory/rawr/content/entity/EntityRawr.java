@@ -1,10 +1,7 @@
 package com.builtbroken.armory.rawr.content.entity;
 
 import com.builtbroken.armory.rawr.config.ConfigDamage;
-import com.builtbroken.armory.rawr.content.entity.ai.TaskAttackWhenHarmed;
-import com.builtbroken.armory.rawr.content.entity.ai.TaskFindTarget;
-import com.builtbroken.armory.rawr.content.entity.ai.TaskFireWeapon;
-import com.builtbroken.armory.rawr.content.entity.ai.TaskFollowOwner;
+import com.builtbroken.armory.rawr.content.entity.ai.*;
 import com.builtbroken.armory.rawr.network.NetworkHandler;
 import com.builtbroken.armory.rawr.network.effects.TargetHitPacket;
 import com.builtbroken.armory.rawr.network.effects.WeaponFirePacket;
@@ -20,7 +17,6 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.PathNodeType;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -36,95 +32,29 @@ import java.util.UUID;
 public class EntityRawr extends EntityCreature implements IRangedAttackMob, IEntityOwnable
 {
     protected static final DataParameter<Optional<UUID>> OWNER_UNIQUE_ID = EntityDataManager.<Optional<UUID>>createKey(EntityRawr.class, DataSerializers.OPTIONAL_UNIQUE_ID);
-    protected static final DataParameter<Float> WEAPON_YAW_DP = EntityDataManager.createKey(EntityRawr.class, DataSerializers.FLOAT);
-    protected static final DataParameter<Float> WEAPON_PITCH_DP = EntityDataManager.createKey(EntityRawr.class, DataSerializers.FLOAT);
 
     public final String NBT_UUID = "uuid";
 
     private EntityPlayer owner;
-
-    public float preWeaponYaw = 0f;
-    public float preWeaponPitch = 0f;
-
-    private final float rotationSpeed = 30f;
 
     public EntityRawr(World worldIn)
     {
         super(worldIn);
         setSize(0.8f, 0.8f);
         setPathPriority(PathNodeType.WATER, -10F);
+        lookHelper = new EntityLookHelper2(this);
     }
 
     @Override
     public void onEntityUpdate()
     {
         super.onEntityUpdate();
-
-        //Store previous
-        preWeaponPitch = getWeaponPitch();
-        preWeaponYaw = getWeaponYaw();
-
-        //Update rotation
-        if (getAttackTarget() != null) //TODO can see target
-        {
-            double d0 = getAttackTarget().posX - posX;
-            double d1 = getAttackTarget().posY - (posY + (double) getEyeHeight());
-            double d2 = getAttackTarget().posZ - posZ;
-            double d3 = (double) MathHelper.sqrt(d0 * d0 + d2 * d2);
-            float f = (float) (MathHelper.atan2(d2, d0) * (180D / Math.PI)) - 90.0F;
-            float f1 = (float) (-(MathHelper.atan2(d1, d3) * (180D / Math.PI)));
-            setWeaponPitch(this.updateRotation(getWeaponPitch(), f1, rotationSpeed));
-            setWeaponYaw(this.updateRotation(getWeaponYaw(), f, rotationSpeed));
-        }
-        else
-        {
-            setWeaponYaw(rotateToZero(getWeaponYaw(), rotationSpeed));
-            setWeaponPitch(rotateToZero(getWeaponPitch(), rotationSpeed));
-        }
     }
 
     @Override
     public void onLivingUpdate()
     {
         super.onLivingUpdate();
-
-        //Override entity rotation with weapon rotation
-        rotationYawHead = getWeaponYaw();
-        rotationPitch = getWeaponPitch();
-    }
-
-    private float rotateToZero(float angle, float speed)
-    {
-        if (angle > speed)
-        {
-            angle -= speed;
-        }
-        else if (angle < -speed)
-        {
-            angle += speed;
-        }
-        else
-        {
-            angle = 0;
-        }
-        return angle;
-    }
-
-    private float updateRotation(float angle, float targetAngle, float maxIncrease)
-    {
-        float f = MathHelper.wrapDegrees(targetAngle - angle);
-
-        if (f > maxIncrease)
-        {
-            f = maxIncrease;
-        }
-
-        if (f < -maxIncrease)
-        {
-            f = -maxIncrease;
-        }
-
-        return angle + f;
     }
 
     @Override
@@ -152,8 +82,6 @@ public class EntityRawr extends EntityCreature implements IRangedAttackMob, IEnt
     {
         super.entityInit();
         this.dataManager.register(OWNER_UNIQUE_ID, Optional.absent());
-        this.dataManager.register(WEAPON_YAW_DP, 0f);
-        this.dataManager.register(WEAPON_PITCH_DP, 0f);
     }
 
     public EntityPlayer getOwner()
@@ -184,26 +112,6 @@ public class EntityRawr extends EntityCreature implements IRangedAttackMob, IEnt
     public void setOwner(EntityPlayer player)
     {
         setOwnerId(player.getGameProfile().getId());
-    }
-
-    public float getWeaponYaw()
-    {
-        return this.dataManager.get(WEAPON_YAW_DP);
-    }
-
-    public void setWeaponYaw(float yaw)
-    {
-        this.dataManager.set(WEAPON_YAW_DP, yaw);
-    }
-
-    public float getWeaponPitch()
-    {
-        return this.dataManager.get(WEAPON_PITCH_DP);
-    }
-
-    public void setWeaponPitch(float pitch)
-    {
-        this.dataManager.set(WEAPON_PITCH_DP, pitch);
     }
 
     public boolean shouldFollowOwner()

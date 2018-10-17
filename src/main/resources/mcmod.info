@@ -1,0 +1,18 @@
+[{
+    "modid": "armoryrawr",
+    "name": "Armory-RAWR",
+    "description": "Gun drone",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "http://builtbroken.com/",
+    "updateUrl": "",
+    "authors": ["DarkCow"],
+    "credits": "Dmod",
+    "logoFile": "",
+    "screenshots": [],
+    "parent": "",
+    "requiredMods": [],
+    "dependencies": [],
+    "dependants": [],
+    "useDependencyInformation": "false"
+}]
